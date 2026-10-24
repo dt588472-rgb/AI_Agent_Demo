@@ -60,10 +60,6 @@ export default function FormPage() {
     let chatId = Array.isArray(slug) ? slug[0] : slug;
     if (chatId) {
       addMessage(chatId, text);
-    } else {
-      chatId = crypto.randomUUID();
-      createChat(text, chatId);
-      router.push(`/chat/${chatId}`);
     }
 
     const assistantId = addMessage(chatId, "", "assistant");
@@ -97,9 +93,17 @@ export default function FormPage() {
             if (line.startsWith("event:")) event = line.slice(6).trim();
             else if (line.startsWith("data:")) dataStr += line.slice(5).trim();
           }
-          if (event === "delta") {
+          if (event === "conversationId" && !chatId) {
+
+            const {conversationId} = JSON.parse(dataStr)
+            createChat(text, conversationId);
+            router.push(`/chat/${conversationId}`);
+
+          } else if (event === "delta") {
+
             const { content } = JSON.parse(dataStr);
             appendToMessage(chatId, assistantId, content);
+
           } else if (event === "done") {
             return;
           }
