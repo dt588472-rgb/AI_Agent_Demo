@@ -5,8 +5,9 @@ import { useState, type FormEvent } from "react";
 import { useChatStore } from "@/providers/chat-store-provider";
 
 // true: 使用前端写死的假数据；false: 请求真实后端
-const USE_MOCK = true;
+const USE_MOCK = false;
 const API_URL = "http://127.0.0.1:7070/api/chat/stream";
+const CHAR_INTERVAL_MS = 60; // 每个字符最小间隔
 
 // 前端模拟后端的 SSE 流式返回
 function mockStreamResponse(text: string): Response {
@@ -19,7 +20,6 @@ function mockStreamResponse(text: string): Response {
         controller.enqueue(
           encoder.encode(`event: delta\ndata: ${JSON.stringify({ content: t })}\n\n`)
         );
-        await new Promise((r) => setTimeout(r, 60)); // 模拟网络延迟
       }
       controller.enqueue(encoder.encode(`event: done\ndata: {}\n\n`));
       controller.close();
@@ -68,6 +68,22 @@ export default function FormPage() {
 
     const assistantId = addMessage(chatId, "", "assistant");
 
+    // 限速输出：内容先进队列，再按固定节奏逐字写入 store
+    const pending: string[] = [];
+    let finished = false;
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    const drain = (async () => {
+      while (!finished || pending.length > 0) {
+        const ch = pending.shift();
+        if (ch === undefined) {
+          await sleep(16);
+          continue;
+        }
+        appendToMessage(chatId, assistantId, ch);
+        await sleep(pending.length > 200 ? 15 : CHAR_INTERVAL_MS);
+      }
+    })();
+
     try {
       const res = USE_MOCK
         ? mockStreamResponse(text)
@@ -82,7 +98,7 @@ export default function FormPage() {
       const decoder = new TextDecoder();
       let buffer = "";
 
-      while (true) {
+      outer: while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         buffer += decoder.decode(value, { stream: true });
@@ -99,15 +115,18 @@ export default function FormPage() {
           }
           if (event === "delta") {
             const { content } = JSON.parse(dataStr);
-            appendToMessage(chatId, assistantId, content);
+            pending.push(...Array.from<string>(content));
           } else if (event === "done") {
-            return;
+            break outer;
           }
         }
       }
     } catch (err) {
       console.error("[stream error]", err);
-      appendToMessage(chatId, assistantId, "请求失败，请重试");
+      pending.push(...Array.from("请求失败，请重试"));
+    } finally {
+      finished = true;
+      await drain;
     }
   }
 
@@ -186,4 +205,3 @@ export default function FormPage() {
   )
 
 }
-
