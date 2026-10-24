@@ -22,6 +22,7 @@ export type ChatState = {
   addMessage: (chatId: string, content: string, role?: "user" | "assistant") => string;
   appendToMessage: (chatId: string, messageId: string, delta: string) => void;
   deleteMessage: (chatId: string) => void;
+  setChatTitle: (chatId: string, title: string) => void;
 };
 
 export const createChatStore = () =>
@@ -83,6 +84,18 @@ export const createChatStore = () =>
         deleteMessage: (chatId) => {
           set((state) => ({
             chats: state.chats.filter(chat => chat.id !== chatId)
+          }))
+        },
+        setChatTitle: (chatId, title) => {
+          set((state) => ({
+            chats: state.chats.map((chat) =>
+              chat.id === chatId
+                ? {
+                    ...chat,
+                    title,
+                  }
+                : chat
+            ),
           }))
         }
       }),

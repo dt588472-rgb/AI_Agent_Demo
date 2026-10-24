@@ -8,13 +8,7 @@ export default function LeftSide() {
 
   const router = useRouter();
 
-  const [showHistoryList, setShowHistoryList] = useState(false);
-
   const deleteMessage = useChatStore((state) => state.deleteMessage);
-
-  function handleSetShowHistoryList() {
-    setShowHistoryList((previous) => !previous);
-  }
 
   function handleNewChat() {
     router.push(`/`);
@@ -35,50 +29,40 @@ export default function LeftSide() {
         />
         New Chat
       </div>
-      <div className="cursor-pointer p-2 flex" onClick={handleSetShowHistoryList} aria-expanded={showHistoryList}>
+      <div className="cursor-pointer p-2 flex">
         Recents
-        <Image
-          src={showHistoryList ? '/chevron-down.svg' : '/chevron-right.svg'}
-          width={20}
-          height={20}
-          alt="New Chat"
-          className="mr-1 w-5 h-5"
-        />
       </div>
-      {
-        showHistoryList
-        &&
-        <ul className="flex-1 min-h-0 overflow-y-auto overscroll-contain list-none">
-          {
-            chats.map(item => (
-              <li
-                key={item.id}
-                onClick={() => router.push(`/chat/${item.id}`)}
-                className="group p-2 rounded hover:bg-gray-100 cursor-pointer flex justify-between items-center">
-                <span>{item.title}</span>
-                <button className="mr-4 shrink-0
+
+      <ul className="flex-1 min-h-0 overflow-y-auto overscroll-contain list-none">
+        {
+          chats.map(item => (
+            <li
+              key={item.id}
+              onClick={() => router.push(`/chat/${item.id}`)}
+              className="group p-2 rounded hover:bg-gray-100 cursor-pointer flex justify-between items-center">
+              <span>{item.title}</span>
+              <button className="mr-4 shrink-0
                   opacity-0
                   group-hover:opacity-100
                   focus-visible:opacity-100
                   transition-opacity duration-200
                   cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteMessage(item.id)
-                  }}
-                >
-                  <Image
-                    src='/delet.svg'
-                    width={18}
-                    height={18}
-                    alt="delete"
-                  />
-                </button>
-              </li>
-            ))
-          }
-        </ul>
-      }
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteMessage(item.id)
+                }}
+              >
+                <Image
+                  src='/delet.svg'
+                  width={18}
+                  height={18}
+                  alt="delete"
+                />
+              </button>
+            </li>
+          ))
+        }
+      </ul>
 
     </div>
   )
