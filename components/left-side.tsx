@@ -29,11 +29,11 @@ export default function LeftSide() {
         />
         New Chat
       </div>
-      <div className="cursor-pointer p-2 flex">
+      <div className="cursor-pointer p-2 flex bg-gray-100">
         Recents
       </div>
 
-      <ul className="flex-1 min-h-0 overflow-y-auto overscroll-contain list-none">
+      <ul className="flex-1 min-h-0 overflow-y-auto overscroll-contain list-none mt-1">
         {
           chats.map(item => (
             <li
