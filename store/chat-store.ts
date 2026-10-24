@@ -1,4 +1,3 @@
-
 import { createStore } from "zustand/vanilla";
 import { persist, createJSONStorage } from "zustand/middleware";
 
@@ -20,7 +19,9 @@ export type Chat = {
 export type ChatState = {
   chats: Chat[];
   createChat: (content: string, chatId: string) => void;
-  addMessage: (chatId: string, content: string) => void;
+  addMessage: (chatId: string, content: string, role?: "user" | "assistant") => string;
+  appendToMessage: (chatId: string, messageId: string, delta: string) => void;
+  deleteMessage: (chatId: string) => void;
 };
 
 export const createChatStore = () =>
@@ -52,20 +53,28 @@ export const createChatStore = () =>
         },
 
         // 向指定聊天添加消息
-        addMessage: (chatId, content) => {
+        addMessage: (chatId, content, role = "user") => {
+          const id = crypto.randomUUID();
           set((state) => ({
             chats: state.chats.map((chat) =>
-              chat.id == chatId
+              chat.id === chatId
+                ? { ...chat, messages: [...chat.messages, { id, role, content }] }
+                : chat
+            ),
+          }));
+          return id;
+        },
+
+        // 流式追加内容
+        appendToMessage: (chatId, messageId, delta) => {
+          set((state) => ({
+            chats: state.chats.map((chat) =>
+              chat.id === chatId
                 ? {
                     ...chat,
-                    messages: [
-                      ...chat.messages,
-                      {
-                        id: crypto.randomUUID(),
-                        role: "user",
-                        content,
-                      },
-                    ],
+                    messages: chat.messages.map((m) =>
+                      m.id === messageId ? { ...m, content: m.content + delta } : m
+                    ),
                   }
                 : chat
             ),
