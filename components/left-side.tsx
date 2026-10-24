@@ -29,7 +29,7 @@ export default function LeftSide() {
         />
         New Chat
       </div>
-      <div className="cursor-pointer p-2 flex bg-gray-100">
+      <div className="cursor-pointer p-2 flex bg-gray-100 mt-1">
         Recents
       </div>
 
