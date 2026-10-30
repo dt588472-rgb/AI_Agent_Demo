@@ -13,11 +13,11 @@ export default function ChatRoom() {
   const messages = chat?.messages ?? [];
 
   return (
-    <div className="p-4">
+    <div className="p-2">
       <ul className="list-none">
         {
           messages.map(m => (
-            <li className="flex flex-row-reverse mt-4" key={m.id}><div className="w-auto bg-blue-100 rounded p-2">{m.content}</div></li>
+            <li className={`flex mt-4 ${m.role == "user" && "flex-row-reverse"}`} key={m.id}><div className={`w-auto ${m.role == "user" && "bg-blue-100"} rounded p-2`}>{m.content}</div></li>
           ))
         }
       </ul>
